@@ -1,0 +1,12 @@
+{
+  "files.associations": {
+    "iostream": "cpp",
+    "limits": "cpp",
+    "ostream": "cpp",
+    "vector": "cpp",
+    "deque": "cpp",
+    "cmath": "cpp",
+    "fstream": "cpp",
+    "iosfwd": "cpp"
+  }
+}

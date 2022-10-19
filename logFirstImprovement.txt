@@ -1,0 +1,24 @@
+#
+Iteracao: 0
+Distancia: 312506
+Tempo: 0.012531s
+#
+Iteracao: 1
+Distancia: 290868
+Tempo: 0.080867s
+#
+Iteracao: 2
+Distancia: 280128
+Tempo: 0.138157s
+#
+Iteracao: 3
+Distancia: 279254
+Tempo: 0.197972s
+#
+Iteracao: 4
+Distancia: 279136
+Tempo: 0.267045s
+#
+Iteracao: 5
+Distancia: 279136
+Tempo: 0.327963s
