@@ -1,12 +1,11 @@
 #include <iostream>
+#include <bits/stdc++.h>
 #include <string>
 #include <vector>
 #include <deque>
 #include <cmath>
 #include <ctime>
 #include <limits>
-
-#define INF_POS std::numeric_limits<float>::max();
 
 using namespace std;
 
@@ -102,86 +101,86 @@ public:
     // e depois da operação de troca entre os vértices caminho[i] e caminho[j].
     // Caso a diferença seja negativa, o caminho em que a troca foi
     // realizada possui distância menor.
-    float diferencaTrocaVertices(vector<int> &caminho, int i, int j)
-    {
-        int iMenos1 = (numVertices + ((i - 1) % numVertices)) % numVertices;
-        int iMais1 = (i + 1) % numVertices;
-        int jMenos1 = (numVertices + ((j - 1) % numVertices)) % numVertices;
-        int jMais1 = (j + 1) % numVertices;
+    // float diferencaTrocaVertices(vector<int> &caminho, int i, int j)
+    // {
+    //     int iMenos1 = (numVertices + ((i - 1) % numVertices)) % numVertices;
+    //     int iMais1 = (i + 1) % numVertices;
+    //     int jMenos1 = (numVertices + ((j - 1) % numVertices)) % numVertices;
+    //     int jMais1 = (j + 1) % numVertices;
 
-        int v_i = caminho[i], v_iMenos1 = caminho[iMenos1], v_iMais1 = caminho[iMais1];
-        int v_j = caminho[j], v_jMenos1 = caminho[jMenos1], v_jMais1 = caminho[jMais1];
+    //     int v_i = caminho[i], v_iMenos1 = caminho[iMenos1], v_iMais1 = caminho[iMais1];
+    //     int v_j = caminho[j], v_jMenos1 = caminho[jMenos1], v_jMais1 = caminho[jMais1];
 
-        if (iMais1 == j)
-        {
-            // Distâncias antes da troca
-            float dAntesI = distancia(vertices[v_iMenos1], vertices[v_i]);
-            float dAntesJ = distancia(vertices[v_j], vertices[v_jMais1]);
-            // Distâncias depois da troca
-            float dDepoisI = distancia(vertices[v_iMenos1], vertices[v_j]);
-            float dDepoisJ = distancia(vertices[v_i], vertices[v_jMais1]);
-            return (dDepoisI + dDepoisJ) - (dAntesI + dAntesJ);
-        }
-        else if (jMais1 == i)
-        {
-            // Distâncias antes da troca
-            float dAntesI = distancia(vertices[v_i], vertices[v_iMais1]);
-            float dAntesJ = distancia(vertices[v_jMenos1], vertices[v_j]);
-            // Distâncias depois da troca
-            float dDepoisI = distancia(vertices[v_j], vertices[v_iMais1]);
-            float dDepoisJ = distancia(vertices[v_jMenos1], vertices[v_i]);
-            return (dDepoisI + dDepoisJ) - (dAntesI + dAntesJ);
-        }
-        else
-        {
-            // Distâncias antes da troca
-            float dAntesI = distancia(vertices[v_iMenos1], vertices[v_i]) + distancia(vertices[v_i], vertices[v_iMais1]);
-            float dAntesJ = distancia(vertices[v_jMenos1], vertices[v_j]) + distancia(vertices[v_j], vertices[v_jMais1]);
-            // Distâncias depois da troca
-            float dDepoisI = distancia(vertices[v_iMenos1], vertices[v_j]) + distancia(vertices[v_j], vertices[v_iMais1]);
-            float dDepoisJ = distancia(vertices[v_jMenos1], vertices[v_i]) + distancia(vertices[v_i], vertices[v_jMais1]);
-            return (dDepoisI + dDepoisJ) - (dAntesI + dAntesJ);
-        }
-    }
+    //     if (iMais1 == j)
+    //     {
+    //         // Distâncias antes da troca
+    //         float dAntesI = distancia(vertices[v_iMenos1], vertices[v_i]);
+    //         float dAntesJ = distancia(vertices[v_j], vertices[v_jMais1]);
+    //         // Distâncias depois da troca
+    //         float dDepoisI = distancia(vertices[v_iMenos1], vertices[v_j]);
+    //         float dDepoisJ = distancia(vertices[v_i], vertices[v_jMais1]);
+    //         return (dDepoisI + dDepoisJ) - (dAntesI + dAntesJ);
+    //     }
+    //     else if (jMais1 == i)
+    //     {
+    //         // Distâncias antes da troca
+    //         float dAntesI = distancia(vertices[v_i], vertices[v_iMais1]);
+    //         float dAntesJ = distancia(vertices[v_jMenos1], vertices[v_j]);
+    //         // Distâncias depois da troca
+    //         float dDepoisI = distancia(vertices[v_j], vertices[v_iMais1]);
+    //         float dDepoisJ = distancia(vertices[v_jMenos1], vertices[v_i]);
+    //         return (dDepoisI + dDepoisJ) - (dAntesI + dAntesJ);
+    //     }
+    //     else
+    //     {
+    //         // Distâncias antes da troca
+    //         float dAntesI = distancia(vertices[v_iMenos1], vertices[v_i]) + distancia(vertices[v_i], vertices[v_iMais1]);
+    //         float dAntesJ = distancia(vertices[v_jMenos1], vertices[v_j]) + distancia(vertices[v_j], vertices[v_jMais1]);
+    //         // Distâncias depois da troca
+    //         float dDepoisI = distancia(vertices[v_iMenos1], vertices[v_j]) + distancia(vertices[v_j], vertices[v_iMais1]);
+    //         float dDepoisJ = distancia(vertices[v_jMenos1], vertices[v_i]) + distancia(vertices[v_i], vertices[v_jMais1]);
+    //         return (dDepoisI + dDepoisJ) - (dAntesI + dAntesJ);
+    //     }
+    // }
 
     // Troca os vértices em caminho[i] e caminho[j]
-    void trocarVertices(vector<int> &caminho, int i, int j)
-    {
-        int aux = caminho[i];
-        caminho[i] = caminho[j];
-        caminho[j] = aux;
-    }
+    // void trocarVertices(vector<int> &caminho, int i, int j)
+    // {
+    //     int aux = caminho[i];
+    //     caminho[i] = caminho[j];
+    //     caminho[j] = aux;
+    // }
 
     // Aplica o algoritmo simulated annealing para o PCV.
     // A cada iteração realiza uma troca entre dois vértices do ciclo.
-    float solveSimulatedAnnealingTrocaSimples()
-    {
-        melhorCaminho = gerarCaminhoInicialSequencial();
-        melhorDistancia = distanciaCaminho(melhorCaminho);
-        // K é constante que multiplica o número de iterações máximas
-        int k = 1;
-        unsigned long int iter, maxIteracoes = (k * pow(numVertices, 2));
-        float tInicial = 500.0, tFinal = 0.001, taxaEsfriamento = 0.9999;
-        float t = tInicial, custoTroca, randFloat;
-        int i, j;
-        srand(time(NULL));
+    // float solveSimulatedAnnealingTrocaSimples()
+    // {
+    //     melhorCaminho = gerarCaminhoInicialSequencial();
+    //     melhorDistancia = distanciaCaminho(melhorCaminho);
+    //     // K é constante que multiplica o número de iterações máximas
+    //     int k = 1;
+    //     unsigned long int iter, maxIteracoes = (k * pow(numVertices, 2));
+    //     float tInicial = 500.0, tFinal = 0.001, taxaEsfriamento = 0.9999;
+    //     float t = tInicial, custoTroca, randFloat;
+    //     int i, j;
+    //     srand(time(NULL));
 
-        for (iter = 0; iter < maxIteracoes && t > tFinal; iter++)
-        {
-            i = rand() % numVertices;
-            j = rand() % numVertices;
-            custoTroca = diferencaTrocaVertices(melhorCaminho, i, j);
-            // Float aleatório entre 0 e 1
-            randFloat = ((float)rand() / (RAND_MAX));
-            if ((custoTroca < 0) || (exp(-custoTroca / t) > randFloat))
-            {
-                melhorDistancia += custoTroca;
-                trocarVertices(melhorCaminho, i, j);
-                t *= taxaEsfriamento;
-            }
-        }
-        return melhorDistancia;
-    }
+    //     for (iter = 0; iter < maxIteracoes && t > tFinal; iter++)
+    //     {
+    //         i = rand() % numVertices;
+    //         j = rand() % numVertices;
+    //         custoTroca = diferencaTrocaVertices(melhorCaminho, i, j);
+    //         // Float aleatório entre 0 e 1
+    //         randFloat = ((float)rand() / (RAND_MAX));
+    //         if ((custoTroca < 0) || (exp(-custoTroca / t) > randFloat))
+    //         {
+    //             melhorDistancia += custoTroca;
+    //             trocarVertices(melhorCaminho, i, j);
+    //             t *= taxaEsfriamento;
+    //         }
+    //     }
+    //     return melhorDistancia;
+    // }
 
     // Calcula a diferença entre as distâncias do caminho antes
     // e depois da operação de troca 2-opt entre os vértices
@@ -220,11 +219,9 @@ public:
     // A cada iteração realiza uma troca 2-opt no ciclo.
     float solveSimulatedAnnealing2Opt()
     {
-        melhorCaminho = gerarCaminhoInicialSequencial(); // ################### USAR NEAREST
+        melhorCaminho = gerarCaminhoInicialSequencial();
         melhorDistancia = distanciaCaminho(melhorCaminho);
-        // K é constante que multiplica o número de iterações máximas
-        int k = 1;
-        unsigned long int iter, maxIteracoes = (k * pow(numVertices, 2));
+        unsigned long int iter, maxIteracoes = pow(numVertices, 2);
         float tInicial = 100.0, tFinal = 0.001, taxaEsfriamento = 0.99;
         float t = tInicial, custoTroca, randFloat;
         int i, j;
@@ -237,17 +234,20 @@ public:
             custoTroca = diferencaTroca2Opt(melhorCaminho, i, j);
             // Float aleatório entre 0 e 1
             randFloat = ((float)rand() / (RAND_MAX));
-            if ((custoTroca < 0) || (exp(-custoTroca / t) > randFloat))
+            if ((custoTroca > 0) || (exp(custoTroca / t) > randFloat))
             {
                 melhorDistancia += custoTroca;
                 trocar2Opt(melhorCaminho, i, j);
                 cout << "dist geracao " << iter << ": " << melhorDistancia << endl;
-                cout << "    valor de vdd: " << distanciaCaminho(melhorCaminho) << endl;
+                cout << "    exp: " << (exp(custoTroca / t)) << " ; rand: " << randFloat << endl;
+                cout << "    custo troca: " << custoTroca << endl;
+
                 t *= taxaEsfriamento;
             }
         }
         cout << "t final: " << t << endl;
         cout << "iter: " << iter << "/" << maxIteracoes << endl;
+        cout << "dist de vdd: " << distanciaCaminho(melhorCaminho) << endl;
         return melhorDistancia;
     }
 };
@@ -257,27 +257,15 @@ public:
 vector<string> tokenizar(string str)
 {
     vector<string> listaTokens;
-    int i;
-    string token = "";
-    for (i = 0; i < (int)str.length(); i++)
-    {
-        if (str[i] == ' ')
-        {
-            if (!token.empty())
-            {
-                listaTokens.push_back(token);
-                token = "";
-            }
-        }
-        else
-        {
-            token = token + str[i];
-        }
-    }
-    if (!token.empty())
-    {
+    string token;
+    string del = " ";
+    int start, end = -1*del.size();
+    do {
+        start = end + del.size();
+        end = str.find(del, start);
+        token = str.substr(start, end - start);
         listaTokens.push_back(token);
-    }
+    } while (end != -1);
 
     return listaTokens;
 }
