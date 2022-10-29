@@ -8,6 +8,7 @@
                 "-fdiagnostics-color=always",
                 "-g",
                 "${file}",
+                "-fopenmp",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}"
             ],

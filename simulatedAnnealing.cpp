@@ -2,6 +2,7 @@
 #include <bits/stdc++.h>
 #include <string>
 #include <vector>
+#include <omp.h>
 #include <deque>
 #include <cmath>
 #include <ctime>
@@ -29,14 +30,34 @@ private:
     vector<Vertice> vertices;
     int numVertices;
     vector<int> melhorCaminho;
-    float melhorDistancia;
+    double melhorDistancia;
+    float t, taxaEsfriamento;
+
 
 public:
     // Inicializa a classe com a lista e a quantidade de vértices
-    PCVSolver(vector<Vertice> listaVertices, int n)
+    PCVSolver(vector<Vertice> listaVertices, int n, bool random, float tInicial, float taxa)
     {
         vertices = listaVertices;
         numVertices = n;
+        random ? melhorCaminho = caminhoInicialAleatorio() : melhorCaminho = caminhoInicialSequencial();
+        melhorDistancia = distanciaCaminho(melhorCaminho);
+        t = tInicial;
+        taxaEsfriamento = taxa;
+    }
+
+    PCVSolver(){}
+
+    void setMelhorCaminho(vector<int> &caminho){
+        melhorCaminho = caminho;
+    }
+
+    vector<int> getMelhorCaminho(){
+        return melhorCaminho;
+    }
+
+    void setMelhorDistancia(double distancia){
+        melhorDistancia = distancia;
     }
 
     // Função de Teste
@@ -54,7 +75,7 @@ public:
     // Imprime as coordenadas de todos os vértices na tela
     void printVertices()
     {
-        for (int i = 1; i < numVertices + 1; i++)
+        for (int i = 0; i < numVertices; i++)
         {
             cout << i << " => x: " << vertices[i].x << " y: " << vertices[i].y << "\n";
         }
@@ -85,102 +106,23 @@ public:
 
     // Gera um caminho inicial, começando no vértice 1 e passando sequencialmente
     // pelos vértices 2, 3, 4, ..., até o último.
-    // Retorna a distância total do caminho.
-    vector<int> gerarCaminhoInicialSequencial()
+    vector<int> caminhoInicialSequencial()
     {
-        vector<int> caminho;
-        int i;
-        for (i = 1; i <= numVertices; i++)
-        {
-            caminho.push_back(i);
-        }
+        vector<int> caminho(numVertices);
+        iota(begin(caminho), end(caminho), 0);
+
         return caminho;
     }
 
-    // Calcula a diferença entre as distâncias do caminho antes
-    // e depois da operação de troca entre os vértices caminho[i] e caminho[j].
-    // Caso a diferença seja negativa, o caminho em que a troca foi
-    // realizada possui distância menor.
-    // float diferencaTrocaVertices(vector<int> &caminho, int i, int j)
-    // {
-    //     int iMenos1 = (numVertices + ((i - 1) % numVertices)) % numVertices;
-    //     int iMais1 = (i + 1) % numVertices;
-    //     int jMenos1 = (numVertices + ((j - 1) % numVertices)) % numVertices;
-    //     int jMais1 = (j + 1) % numVertices;
-
-    //     int v_i = caminho[i], v_iMenos1 = caminho[iMenos1], v_iMais1 = caminho[iMais1];
-    //     int v_j = caminho[j], v_jMenos1 = caminho[jMenos1], v_jMais1 = caminho[jMais1];
-
-    //     if (iMais1 == j)
-    //     {
-    //         // Distâncias antes da troca
-    //         float dAntesI = distancia(vertices[v_iMenos1], vertices[v_i]);
-    //         float dAntesJ = distancia(vertices[v_j], vertices[v_jMais1]);
-    //         // Distâncias depois da troca
-    //         float dDepoisI = distancia(vertices[v_iMenos1], vertices[v_j]);
-    //         float dDepoisJ = distancia(vertices[v_i], vertices[v_jMais1]);
-    //         return (dDepoisI + dDepoisJ) - (dAntesI + dAntesJ);
-    //     }
-    //     else if (jMais1 == i)
-    //     {
-    //         // Distâncias antes da troca
-    //         float dAntesI = distancia(vertices[v_i], vertices[v_iMais1]);
-    //         float dAntesJ = distancia(vertices[v_jMenos1], vertices[v_j]);
-    //         // Distâncias depois da troca
-    //         float dDepoisI = distancia(vertices[v_j], vertices[v_iMais1]);
-    //         float dDepoisJ = distancia(vertices[v_jMenos1], vertices[v_i]);
-    //         return (dDepoisI + dDepoisJ) - (dAntesI + dAntesJ);
-    //     }
-    //     else
-    //     {
-    //         // Distâncias antes da troca
-    //         float dAntesI = distancia(vertices[v_iMenos1], vertices[v_i]) + distancia(vertices[v_i], vertices[v_iMais1]);
-    //         float dAntesJ = distancia(vertices[v_jMenos1], vertices[v_j]) + distancia(vertices[v_j], vertices[v_jMais1]);
-    //         // Distâncias depois da troca
-    //         float dDepoisI = distancia(vertices[v_iMenos1], vertices[v_j]) + distancia(vertices[v_j], vertices[v_iMais1]);
-    //         float dDepoisJ = distancia(vertices[v_jMenos1], vertices[v_i]) + distancia(vertices[v_i], vertices[v_jMais1]);
-    //         return (dDepoisI + dDepoisJ) - (dAntesI + dAntesJ);
-    //     }
-    // }
-
-    // Troca os vértices em caminho[i] e caminho[j]
-    // void trocarVertices(vector<int> &caminho, int i, int j)
-    // {
-    //     int aux = caminho[i];
-    //     caminho[i] = caminho[j];
-    //     caminho[j] = aux;
-    // }
-
-    // Aplica o algoritmo simulated annealing para o PCV.
-    // A cada iteração realiza uma troca entre dois vértices do ciclo.
-    // float solveSimulatedAnnealingTrocaSimples()
-    // {
-    //     melhorCaminho = gerarCaminhoInicialSequencial();
-    //     melhorDistancia = distanciaCaminho(melhorCaminho);
-    //     // K é constante que multiplica o número de iterações máximas
-    //     int k = 1;
-    //     unsigned long int iter, maxIteracoes = (k * pow(numVertices, 2));
-    //     float tInicial = 500.0, tFinal = 0.001, taxaEsfriamento = 0.9999;
-    //     float t = tInicial, custoTroca, randFloat;
-    //     int i, j;
-    //     srand(time(NULL));
-
-    //     for (iter = 0; iter < maxIteracoes && t > tFinal; iter++)
-    //     {
-    //         i = rand() % numVertices;
-    //         j = rand() % numVertices;
-    //         custoTroca = diferencaTrocaVertices(melhorCaminho, i, j);
-    //         // Float aleatório entre 0 e 1
-    //         randFloat = ((float)rand() / (RAND_MAX));
-    //         if ((custoTroca < 0) || (exp(-custoTroca / t) > randFloat))
-    //         {
-    //             melhorDistancia += custoTroca;
-    //             trocarVertices(melhorCaminho, i, j);
-    //             t *= taxaEsfriamento;
-    //         }
-    //     }
-    //     return melhorDistancia;
-    // }
+    // Gera um caminho inicial aleatório que passa por todos os vértices
+    // uma única vez.
+    vector<int> caminhoInicialAleatorio()
+    {
+        vector<int> caminho(numVertices);
+        iota(begin(caminho), end(caminho), 0);
+        random_shuffle(caminho.begin(), caminho.end());
+        return caminho;
+    }
 
     // Calcula a diferença entre as distâncias do caminho antes
     // e depois da operação de troca 2-opt entre os vértices
@@ -217,19 +159,15 @@ public:
 
     // Aplica o algoritmo simulated annealing para o PCV.
     // A cada iteração realiza uma troca 2-opt no ciclo.
-    float solveSimulatedAnnealing2Opt()
+    float solveSimulatedAnnealing2Opt(int maxIteracoes)
     {
-        melhorCaminho = gerarCaminhoInicialSequencial();
-        melhorDistancia = distanciaCaminho(melhorCaminho);
-        unsigned long int iter, maxIteracoes = pow(numVertices, 2);
-        float tInicial = 100.0, tFinal = 0.001, taxaEsfriamento = 0.99;
-        float t = tInicial, custoTroca, randFloat;
+        unsigned long int iter;
+        float custoTroca, randFloat;
         int i, j;
-        srand(time(NULL));
 
-        for (iter = 0; iter < maxIteracoes && t > tFinal; iter++)
+        for (iter = 0; iter < maxIteracoes; iter++)
         {
-            i = (rand() % (numVertices - 2)) + 1;
+            i = (rand() % (numVertices - 1)) + 1;
             j = i + (rand() % (numVertices - i));
             custoTroca = diferencaTroca2Opt(melhorCaminho, i, j);
             // Float aleatório entre 0 e 1
@@ -238,16 +176,18 @@ public:
             {
                 melhorDistancia += custoTroca;
                 trocar2Opt(melhorCaminho, i, j);
-                cout << "dist geracao " << iter << ": " << melhorDistancia << endl;
-                cout << "    exp: " << (exp(custoTroca / t)) << " ; rand: " << randFloat << endl;
-                cout << "    custo troca: " << custoTroca << endl;
+                // cout << "dist geracao " << iter << ": " << melhorDistancia << endl;
+                // cout << "   dist de vdd: " << distanciaCaminho(melhorCaminho) << endl;
+                // cout << "    exp: " << (exp(custoTroca / t)) << " ; rand: " << randFloat << endl;
+                // cout << "    custo troca: " << custoTroca << endl;
 
-                t *= taxaEsfriamento;
             }
         }
-        cout << "t final: " << t << endl;
-        cout << "iter: " << iter << "/" << maxIteracoes << endl;
-        cout << "dist de vdd: " << distanciaCaminho(melhorCaminho) << endl;
+        t *= taxaEsfriamento;
+        // cout << "t final: " << t << endl;
+        // cout << "iter: " << iter << "/" << maxIteracoes << endl;
+        // cout << "dist: " << melhorDistancia << endl;
+        // cout << "dist de vdd: " << distanciaCaminho(melhorCaminho) << endl;
         return melhorDistancia;
     }
 };
@@ -273,7 +213,6 @@ vector<string> tokenizar(string str)
 // Inicializa a lista de vértices utilizando linhas de entrada
 // da linha de comando.
 // Assume que a entrada está formatada de acordo com os exemplos.
-// Inicializa a posição 0 da linha de vértices com um vértice vazio.
 void inicializar(vector<Vertice> &listaVertices, int &tamanhoLista)
 {
     string linhaEntrada;
@@ -285,8 +224,6 @@ void inicializar(vector<Vertice> &listaVertices, int &tamanhoLista)
     }
 
     // Declaração dos vértices
-    // Primeiro vértice é vazio
-    listaVertices.push_back(Vertice());
     tamanhoLista = 0;
     getline(cin, linhaEntrada);
     // Enquanto não achar um "EOF"
@@ -299,23 +236,97 @@ void inicializar(vector<Vertice> &listaVertices, int &tamanhoLista)
     }
 }
 
+// Inicializa a lista de vértices utilizando um arquivo
+// Presume que a entrada está formatada de acordo com os exemplos.
+// Retorna true caso o arquivo exista, false caso contrário
+bool inicializarPorArquivo(string nomeArquivo, vector<Vertice> &listaVertices, int &tamanhoLista)
+{
+    ifstream arq(nomeArquivo);
+
+    if (!arq.good())
+        return false;
+
+    string linhaEntrada;
+    vector<string> listaTokens;
+
+    for (int i = 0; i < 6; i++)
+    {
+        getline(arq, linhaEntrada);
+    }
+
+    // Declaração dos vértices
+    tamanhoLista = 0;
+    // Enquanto não for o fim do arquivo e não achar um "EOF"
+    while (getline(arq, linhaEntrada) && linhaEntrada.find("EOF") == string::npos)
+    {
+        listaTokens = tokenizar(linhaEntrada);
+        listaVertices.push_back(Vertice(stof(listaTokens[1]), stof(listaTokens[2])));
+        tamanhoLista++;
+    }
+
+    return true;
+}
+
+double simulatedAnnealingParalelo(vector<Vertice> listaVertices, int tamanhoLista, int numThreads){
+    omp_set_num_threads(numThreads);
+
+    vector<PCVSolver> pcvSolvers(numThreads);
+    vector<double> resultados(numThreads, 0.0);
+    int iteracoes = 10000, p = 100;
+    float tInicial = 100, taxaEsfriamento = 0.98;
+    float melhorResultado;
+
+    // inicializar em paralelo
+    #pragma omp parallel for
+    for(int i=0; i<numThreads; i++){
+        pcvSolvers[i] = PCVSolver(listaVertices, tamanhoLista, true, tInicial, taxaEsfriamento);
+    }
+
+    while(iteracoes>0){
+        // faz p iterações do simulated annealing em paralelo
+        #pragma omp parallel for
+        for(int i=0; i<numThreads; i++){
+            resultados[i] = pcvSolvers[i].solveSimulatedAnnealing2Opt(p);
+            printf("    resultado = %f; from thread = %d\n", resultados[i],
+                omp_get_thread_num());
+        }
+        // pega o indice do maior resultado
+        int max = distance(resultados.begin(),max_element(resultados.begin(), resultados.end()));
+        vector<int> melhorCaminho = pcvSolvers[max].getMelhorCaminho();
+        melhorResultado = resultados[max];
+        // atualiza todas as intâncias com o melhor resultado
+        #pragma omp parallel for
+        for(int i=0; i<numThreads; i++){
+            pcvSolvers[i].setMelhorCaminho(melhorCaminho);
+            pcvSolvers[i].setMelhorDistancia(melhorResultado);
+
+        }
+        printf("Melhor resultado = %f -> thread = %d\n", melhorResultado, max);
+
+        iteracoes-=p;
+    }
+
+    return melhorResultado;
+}
+
 int main()
 {
     vector<Vertice> listaVertices;
     int tamanhoLista;
-    inicializar(listaVertices, tamanhoLista);
-    PCVSolver pcvSolver(listaVertices, tamanhoLista);
+    // inicializar(listaVertices, tamanhoLista);
+    string nomeArq = "casosTeste/att48.txt";
+    inicializarPorArquivo(nomeArq, listaVertices, tamanhoLista);
+    double resultado;
+    int numThreads = 4;
 
-    float resultado;
+    srand(time(NULL));
     clock_t tempoInicial = clock();
-
-    resultado = pcvSolver.solveSimulatedAnnealing2Opt();
-
+    resultado = simulatedAnnealingParalelo(listaVertices, tamanhoLista, numThreads);
     clock_t tempoFinal = clock();
     float tempoTotal = (tempoFinal - tempoInicial) / (float)CLOCKS_PER_SEC;
 
-    cout << tempoTotal << "s" << endl;
-    cout << resultado << "\n";
+    cout << "Tempo de Execução: " << tempoTotal << "s" << endl;
+    cout << "Resultado Final: " << resultado << "\n";
 
     return 0;
 }
