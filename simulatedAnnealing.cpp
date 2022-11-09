@@ -57,10 +57,10 @@ float distancia(Vertice v1, Vertice v2)
 }
 
 // Retorna a distância percorrida pelo caminho inteiro.
-float distanciaCaminho(vector<Vertice> &vertices, vector<int> &caminho)
+double distanciaCaminho(vector<Vertice> &vertices, vector<int> &caminho)
 {
     int i;
-    float distanciaTotal = 0;
+    double distanciaTotal = 0;
     for (i = 0; i < (int)caminho.size() - 1; i++)
     {
         distanciaTotal += distancia(vertices[caminho[i]], vertices[caminho[i + 1]]);
@@ -123,14 +123,14 @@ void trocar2Opt(vector<int> &caminho, int i, int j)
 }
 
 // Aplica o algoritmo simulated annealing para o PCV.
-// A cada iteração realiza uma troca 2-opt no ciclo.
+// Retorna o caminho obtido na última iteração
 vector<int> simulatedAnnealing2Opt(vector<Vertice> &vertices, vector<int> &caminho, float &t, float taxaEsfriamento, int maxIteracoes)
 {
     unsigned long int iter;
-    float custoTroca, randFloat;
+    float randFloat;
     int i, j;
     int numVertices = caminho.size();
-    float melhorDistancia = distanciaCaminho(vertices, caminho);
+    double custoTroca, melhorDistancia = distanciaCaminho(vertices, caminho);
 
     for (iter = 0; iter < maxIteracoes; iter++)
     {
@@ -163,15 +163,27 @@ vector<int> simulatedAnnealing2Opt(vector<Vertice> &vertices, vector<int> &camin
 vector<string> tokenizar(string str)
 {
     vector<string> listaTokens;
-    string token;
-    string del = " ";
-    int start, end = -1*del.size();
-    do {
-        start = end + del.size();
-        end = str.find(del, start);
-        token = str.substr(start, end - start);
+    int i;
+    string token = "";
+    for (i = 0; i < (int)str.length(); i++)
+    {
+        if (str[i] == ' ')
+        {
+            if (!token.empty())
+            {
+                listaTokens.push_back(token);
+                token = "";
+            }
+        }
+        else
+        {
+            token = token + str[i];
+        }
+    }
+    if (!token.empty())
+    {
         listaTokens.push_back(token);
-    } while (end != -1);
+    }
 
     return listaTokens;
 }
@@ -235,9 +247,10 @@ bool inicializarPorArquivo(string nomeArquivo, vector<Vertice> &listaVertices, i
 
 double simulatedAnnealingParalelo(vector<Vertice> listaVertices, int numVertices, int numThreads){
     omp_set_num_threads(numThreads);
-    int iteracoes = 10000, p = 100;
-    float t = 100, taxaEsfriamento = 0.95;
-    float melhorDistancia = 0;
+    int iteracoes = 0, p = 100;
+    float t = 100, taxaEsfriamento = 0.99;
+    double melhorDistancia = 0;
+    int contSemMelhoria = 0, maxSemMelhoria = 10;
     vector<int> melhorCaminho;
 
     // primeira iteração em paralelo
@@ -260,8 +273,8 @@ double simulatedAnnealingParalelo(vector<Vertice> listaVertices, int numVertices
     }
     printf("\t\tMelhor resultado = %f\n", melhorDistancia);
     
-    while(iteracoes>0){
-        cout << "iteracoes sobrando: " << iteracoes << " / t: " << t << endl;
+    while(contSemMelhoria < maxSemMelhoria){
+        cout << "iter: " << iteracoes << " / t: " << t << endl;
         int melhorThread;
         // faz p iterações do simulated annealing em paralelo
         #pragma omp parallel for
@@ -278,6 +291,7 @@ double simulatedAnnealingParalelo(vector<Vertice> listaVertices, int numVertices
                     melhorDistancia = distancia;
                     melhorCaminho = caminho;
                     melhorThread = i;
+                    contSemMelhoria = -1;
                 }
             }
 
@@ -285,7 +299,8 @@ double simulatedAnnealingParalelo(vector<Vertice> listaVertices, int numVertices
         printf("\t\tMelhor resultado = %f -> thread = %d\n", melhorDistancia, melhorThread);
 
         t *= taxaEsfriamento;
-        iteracoes-=p;
+        iteracoes+=p;
+        contSemMelhoria++;
     }
 
     return melhorDistancia;
