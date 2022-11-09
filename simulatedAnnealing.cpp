@@ -124,7 +124,7 @@ void trocar2Opt(vector<int> &caminho, int i, int j)
 
 // Aplica o algoritmo simulated annealing para o PCV.
 // Retorna o caminho obtido na última iteração
-vector<int> simulatedAnnealing2Opt(vector<Vertice> &vertices, vector<int> &caminho, float &t, float taxaEsfriamento, int maxIteracoes)
+double simulatedAnnealing2Opt(vector<Vertice> &vertices, vector<int> &caminho, float &t, float taxaEsfriamento, int maxIteracoes)
 {
     unsigned long int iter;
     float randFloat;
@@ -155,7 +155,7 @@ vector<int> simulatedAnnealing2Opt(vector<Vertice> &vertices, vector<int> &camin
     // cout << "iter: " << iter << "/" << maxIteracoes << endl;
     // cout << "dist: " << melhorDistancia << endl;
     // cout << "dist de vdd: " << distanciaCaminho(caminho) << endl;
-    return caminho;
+    return melhorDistancia;
 }
 
 // Separa a string em uma lista de tokens
@@ -281,8 +281,7 @@ double simulatedAnnealingParalelo(vector<Vertice> listaVertices, int numVertices
         for(int i=0; i<numThreads; i++){
             vector<int> caminho = melhorCaminho;
             float tThread = t;
-            simulatedAnnealing2Opt(listaVertices, caminho, tThread, taxaEsfriamento, p);
-            double distancia = distanciaCaminho(listaVertices, caminho);
+            double distancia = simulatedAnnealing2Opt(listaVertices, caminho, tThread, taxaEsfriamento, p);
             printf("\tresultado = %f; from thread = %d\n", distancia, omp_get_thread_num());
             
             #pragma omp critical
@@ -311,16 +310,16 @@ int main()
     vector<Vertice> listaVertices;
     int numVertices;
     // inicializar(listaVertices, numVertices);
-    string nomeArq = "casosTeste/att48.txt";
+    string nomeArq = "casosTeste/d18512.tsp";
     inicializarPorArquivo(nomeArq, listaVertices, numVertices);
     double resultado;
     int numThreads = 4;
 
     srand(time(NULL));
-    clock_t tempoInicial = clock();
+    double start = omp_get_wtime(); 
     resultado = simulatedAnnealingParalelo(listaVertices, numVertices, numThreads);
-    clock_t tempoFinal = clock();
-    float tempoTotal = (tempoFinal - tempoInicial) / (float)CLOCKS_PER_SEC;
+    double end = omp_get_wtime();
+    float tempoTotal = end-start;
 
     cout << "Tempo de Execução: " << tempoTotal << "s" << endl;
     cout << "Resultado Final: " << resultado << "\n";
