@@ -245,33 +245,63 @@ bool inicializarPorArquivo(string nomeArquivo, vector<Vertice> &listaVertices, i
     return true;
 }
 
-double simulatedAnnealing(vector<Vertice> listaVertices, int numVertices){
+double simulatedAnnealingParalelo(vector<Vertice> listaVertices, int numVertices, int numThreads){
+    omp_set_num_threads(numThreads);
     int iteracoes = 0, p = 100;
     float t = 100, taxaEsfriamento = 0.99;
     double melhorDistancia = 0;
     int contSemMelhoria = 0, maxSemMelhoria = 10;
     vector<int> melhorCaminho;
 
-    vector<int> caminho = caminhoInicialAleatorio(numVertices);
-
+    // primeira iteração em paralelo
+    // gera soluções iniciais aleatórias e executa o simulated annealing,
+    // armazenando apenas a melhor solução
+    #pragma omp parallel for
+    for(int i=0; i<numThreads; i++){
+        vector<int> caminho = caminhoInicialAleatorio(numVertices);
+        float tThread = t;
+        simulatedAnnealing2Opt(listaVertices, caminho, tThread, taxaEsfriamento, p);
+        double distancia = distanciaCaminho(listaVertices, caminho);
+        printf("\tresultado = %f; from thread = %d\n", distancia, omp_get_thread_num());
+        #pragma omp critical
+        {
+            if(distancia > melhorDistancia) {
+                melhorDistancia = distancia;
+                melhorCaminho = caminho;
+            }
+        }
+    }
+    printf("\t\tMelhor resultado = %f\n", melhorDistancia);
+    
     while(contSemMelhoria < maxSemMelhoria){
         cout << "iter: " << iteracoes << " / t: " << t << endl;
-        
-        simulatedAnnealing2Opt(listaVertices, caminho, t, taxaEsfriamento, p);
-        double distancia = distanciaCaminho(listaVertices, caminho);
-        if(distancia > melhorDistancia) {
-            melhorDistancia = distancia;
-            melhorCaminho = caminho;
-            contSemMelhoria = -1;
-        }
-        printf("\tresultado = %f\n", distancia);
+        int melhorThread;
+        // faz p iterações do simulated annealing em paralelo
+        #pragma omp parallel for
+        for(int i=0; i<numThreads; i++){
+            vector<int> caminho = melhorCaminho;
+            float tThread = t;
+            double distancia = simulatedAnnealing2Opt(listaVertices, caminho, tThread, taxaEsfriamento, p);
+            printf("\tresultado = %f; from thread = %d\n", distancia, omp_get_thread_num());
+            
+            #pragma omp critical
+            {
+                if(distancia > melhorDistancia) {
+                    melhorDistancia = distancia;
+                    melhorCaminho = caminho;
+                    melhorThread = i;
+                    contSemMelhoria = -1;
+                }
+            }
 
+        }
+        printf("\t\tMelhor resultado = %f -> thread = %d\n", melhorDistancia, melhorThread);
+
+        t *= taxaEsfriamento;
         iteracoes+=p;
         contSemMelhoria++;
     }
-    
-    printf("\t\tMelhor resultado = %f\n", melhorDistancia);
-    
+
     return melhorDistancia;
 }
 
@@ -283,10 +313,11 @@ int main()
     string nomeArq = "casosTeste/pr1002.tsp";
     inicializarPorArquivo(nomeArq, listaVertices, numVertices);
     double resultado;
+    int numThreads = 4;
 
     srand(time(NULL));
     double start = omp_get_wtime(); 
-    resultado = simulatedAnnealing(listaVertices, numVertices);
+    resultado = simulatedAnnealingParalelo(listaVertices, numVertices, numThreads);
     double end = omp_get_wtime();
     float tempoTotal = end-start;
 
