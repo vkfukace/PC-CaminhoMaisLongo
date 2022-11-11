@@ -8,7 +8,7 @@ Implementação de dois algoritmos de Simulated Annealing paralelizados para o P
 
 ### Execução
 
-Para executar, digitar o comando ./\<nomeDoAlgoritmo\>" no terminal.
+Para executar, digitar o comando "make shared" ou "make distr" no terminal.
 
 A mudança do caso de teste utilizado é feita somente por código.
 
